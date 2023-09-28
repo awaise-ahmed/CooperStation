@@ -1,0 +1,33 @@
+Title:
+-----
+618. Students Report By Geography
+
+DDL Section:
+-----------
+CREATE TABLE PLAYERS_LOCATION
+   ( NAME  VARCHAR2(20), 
+     CITY  VARCHAR2(20)
+   );
+
+DML Section:
+-----------
+insert into players_location values ('Sachin','Mumbai');
+insert into players_location values ('Virat','Delhi');
+insert into players_location values ('Rahul','Bangalore');
+insert into players_location values ('Rohit','Mumbai');
+insert into players_location values ('Mayank','Bangalore');
+
+SQL Query (Oracle SQL):
+----------------------
+with a as
+(
+  select name,city,
+  row_number() over (partition by city order by name) rn
+  from players_location
+)
+select max(case when city = 'Bangalore' then name end) as Bangalore,
+       max(case when city = 'Mumbai' then name end) as Mumbai,
+       max(case when city = 'Delhi' then name end) as Delhi
+from a
+group by rn
+order by rn;

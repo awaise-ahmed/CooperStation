@@ -1,0 +1,56 @@
+Title:
+-----
+262. Trips and Users
+
+DDL Statements:
+--------------
+Create table Trips (id number
+                   ,client_id number
+                   ,driver_id Number
+                   ,city_id number
+                   ,status varchar2(50)
+                   ,request_at varchar2(50));
+
+Create  table Users (users_id number
+                   ,banned varchar2(50)
+                   ,role varchar2(50));
+ 
+
+DML Statements:
+--------------
+
+insert into Trips (id, client_id, driver_id, city_id, status, request_at) values ('1', '1', '10',  '1',  'completed', '2013-10-01');
+insert into Trips (id, client_id, driver_id, city_id, status, request_at) values ('2', '2', '11',  '1',  'cancelled_by_driver', '2013-10-01');
+insert into Trips (id, client_id, driver_id, city_id, status, request_at) values ('3', '3', '12',  '6',  'completed', '2013-10-01');
+insert into Trips (id, client_id, driver_id, city_id, status, request_at) values ('4', '4', '13',  '6',  'cancelled_by_client', '2013-10-01');
+insert into Trips (id, client_id, driver_id, city_id, status, request_at) values ('5', '1', '10',  '1',  'completed', '2013-10-02');
+insert into Trips (id, client_id, driver_id, city_id, status, request_at) values ('6', '2', '11',  '6',  'completed', '2013-10-02');
+insert into Trips (id, client_id, driver_id, city_id, status, request_at) values ('7', '3', '12',  '6',  'completed', '2013-10-02');
+insert into Trips (id, client_id, driver_id, city_id, status, request_at) values ('8', '2', '12',  '12', 'completed', '2013-10-03');
+insert into Trips (id, client_id, driver_id, city_id, status, request_at) values ('9', '3', '10',  '12', 'completed', '2013-10-03');
+insert into Trips (id, client_id, driver_id, city_id, status, request_at) values ('10', '4', '13', '12', 'cancelled_by_driver', '2013-10-03');
+
+insert into Users (users_id, banned, role) values ('1', 'No', 'client');
+insert into Users (users_id, banned, role) values ('2', 'Yes', 'client');
+insert into Users (users_id, banned, role) values ('3', 'No', 'client');
+insert into Users (users_id, banned, role) values ('4', 'No', 'client');
+insert into Users (users_id, banned, role) values ('10', 'No', 'driver');
+insert into Users (users_id, banned, role) values ('11', 'No', 'driver');
+insert into Users (users_id, banned, role) values ('12', 'No', 'driver');
+insert into Users (users_id, banned, role) values ('13', 'No', 'driver');
+
+
+SQL Query (Oracle SQL):
+----------------------
+select request_at as "Day",
+round(sum(case when a.status in ('cancelled_by_client','cancelled_by_driver') then 1 else 0 end)/count(1),2) as "Cancellation Rate" 
+from Trips a,
+users b, users c
+where a.client_id = b.users_id
+and a.driver_id = c.users_id
+and b.banned = 'No'
+and c.banned = 'No'
+and request_at >= '2013-10-01'
+and request_at <= '2013-10-03'
+group by request_at
+order by request_at
