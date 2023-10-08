@@ -1,0 +1,54 @@
+Title:
+-----
+2494 - Merge Overlapping Events in the Same Hall
+
+DDL Statements:
+--------------
+CREATE TABLE HallEvents (
+    hall_id NUMBER,
+    start_day DATE,
+    end_day DATE
+);
+
+DML Statements:
+--------------
+
+INSERT INTO HallEvents (hall_id, start_day, end_day)
+VALUES (1, TO_DATE('2023-01-13', 'YYYY-MM-DD'), TO_DATE('2023-01-14', 'YYYY-MM-DD'));
+
+INSERT INTO HallEvents (hall_id, start_day, end_day)
+VALUES (1, TO_DATE('2023-01-14', 'YYYY-MM-DD'), TO_DATE('2023-01-17', 'YYYY-MM-DD'));
+
+INSERT INTO HallEvents (hall_id, start_day, end_day)
+VALUES (1, TO_DATE('2023-01-18', 'YYYY-MM-DD'), TO_DATE('2023-01-25', 'YYYY-MM-DD'));
+
+INSERT INTO HallEvents (hall_id, start_day, end_day)
+VALUES (2, TO_DATE('2022-12-09', 'YYYY-MM-DD'), TO_DATE('2022-12-23', 'YYYY-MM-DD'));
+
+INSERT INTO HallEvents (hall_id, start_day, end_day)
+VALUES (2, TO_DATE('2022-12-13', 'YYYY-MM-DD'), TO_DATE('2022-12-17', 'YYYY-MM-DD'));
+
+INSERT INTO HallEvents (hall_id, start_day, end_day)
+VALUES (3, TO_DATE('2022-12-01', 'YYYY-MM-DD'), TO_DATE('2023-01-30', 'YYYY-MM-DD'));
+
+
+SQL Query (Oracle SQL):
+----------------------
+with a as(
+  select HALL_ID,START_DAY,END_DAY,
+  lag(end_day,1,start_day) over(partition by hall_id order by start_day) prev_end
+  from HallEvents
+),
+b as
+(
+  select HALL_ID,START_DAY,END_DAY,PREV_END,
+  --case when prev_end >= start_day then 0 else 1 end as gc,
+  sum(case when prev_end >= start_day then 0 else 1 end) over (partition by hall_id order by start_day) as gc2
+  from a
+)
+select hall_id, 
+       min(start_day) as start_day,
+       max(end_day) as end_day
+from b
+group by hall_id, gc2
+order by hall_id, start_day;
