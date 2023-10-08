@@ -1,0 +1,61 @@
+Title:
+-----
+1205. Monthly Transactions II
+
+Code:
+----
+import pandas as pd
+
+transactions_data = {
+    'id': [101, 102, 103, 104, 105],
+    'country': ['US', 'US', 'US', 'US', 'US'],
+    'state': ['approved', 'declined', 'approved', 'approved', 'approved'],
+    'amount': [1000, 2000, 3000, 4000, 5000],
+    'trans_date': ['2019-05-18', '2019-05-19', '2019-06-10', '2019-06-13', '2019-06-15']
+}
+transactions_df = pd.DataFrame(transactions_data)
+transactions_df['trans_date'] = pd.to_datetime(transactions_df['trans_date'])
+
+# Create a DataFrame for the Chargebacks data
+chargebacks_data = {
+    'trans_id': [102, 101, 105],
+    'trans_date': ['2019-05-29', '2019-06-30', '2019-09-18']
+}
+chargebacks_df = pd.DataFrame(chargebacks_data)
+chargebacks_df['trans_date'] = pd.to_datetime(chargebacks_df['trans_date'])
+
+#print(transactions_df)
+#print(chargebacks_df)
+#print('----------------')
+
+transactions_df['month'] = transactions_df.trans_date.dt.strftime('%Y-%m')
+#print(transactions_df)
+fil = (transactions_df.state == 'approved')
+
+df1 = transactions_df.groupby(['country','month']).agg(
+    approved_count=('id',lambda x:x[fil].count()),
+    approved_amount=('amount',lambda x:x[fil].sum())
+
+    ).reset_index()
+
+#print(df1)
+
+df2 = chargebacks_df.merge(transactions_df,left_on='trans_id', right_on='id')
+df2['month'] = df2.trans_date_x.dt.strftime('%Y-%m')
+#print(df2)
+df3=df2.groupby(['country','month']).agg(
+    ch_amount=('amount','sum'),
+    ch_count=('id','count')
+    ).reset_index()
+
+#print(df3)
+#print(df1)
+
+df4 = pd.concat([df1,df3]).fillna(0).groupby(['country','month']).agg(
+    approved_count=('approved_count','sum'),
+    approved_amount=('approved_amount','sum'),
+    ch_count=('ch_count','sum'),
+    ch_amount=('ch_amount','sum'),
+    ).reset_index()
+
+print(df4)
