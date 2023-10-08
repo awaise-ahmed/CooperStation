@@ -1,0 +1,57 @@
+Title:
+-----
+1205. Monthly Transactions II
+
+DDL Statements:
+--------------
+CREATE TABLE Transactions (
+    id NUMBER,
+    country VARCHAR2(2),
+    state VARCHAR2(10),
+    amount NUMBER,
+    trans_date DATE
+);
+
+CREATE TABLE Chargebacks (
+    trans_id NUMBER,
+    trans_date DATE
+);
+
+DML Statements:
+--------------
+
+INSERT INTO Transactions (id, country, state, amount, trans_date) VALUES (101, 'US', 'approved', 1000, TO_DATE('2019-05-18', 'YYYY-MM-DD'));
+INSERT INTO Transactions (id, country, state, amount, trans_date) VALUES (102, 'US', 'declined', 2000, TO_DATE('2019-05-19', 'YYYY-MM-DD'));
+INSERT INTO Transactions (id, country, state, amount, trans_date) VALUES (103, 'US', 'approved', 3000, TO_DATE('2019-06-10', 'YYYY-MM-DD'));
+INSERT INTO Transactions (id, country, state, amount, trans_date) VALUES (104, 'US', 'approved', 4000, TO_DATE('2019-06-13', 'YYYY-MM-DD'));
+INSERT INTO Transactions (id, country, state, amount, trans_date) VALUES (105, 'US', 'approved', 5000, TO_DATE('2019-06-15', 'YYYY-MM-DD'));
+
+INSERT INTO Chargebacks (trans_id, trans_date) VALUES (102, TO_DATE('2019-05-29', 'YYYY-MM-DD'));
+INSERT INTO Chargebacks (trans_id, trans_date) VALUES (101, TO_DATE('2019-06-30', 'YYYY-MM-DD'));
+INSERT INTO Chargebacks (trans_id, trans_date) VALUES (105, TO_DATE('2019-09-18', 'YYYY-MM-DD'));
+
+
+SQL Query (Oracle SQL):
+----------------------
+with a as(
+  select * from transactions
+  union all
+  select a.TRANS_ID,
+    b.country,
+    'chargeback' as state,
+    b.amount as amount,
+    a.trans_date
+ from Chargebacks a,transactions b
+ where a.trans_id = b.id
+)
+--select * from a
+select to_char(TRANS_DATE,'YYYY-MM') month,
+  country,
+  sum(case when state='approved' then 1 else 0 end) as approved_count,
+  sum(case when state='approved' then amount else 0 end) as approved_amount,
+  sum(case when state='chargeback' then 1 else 0 end) as chargeback_count,
+  sum(case when state='chargeback' then amount else 0 end) as chargeback_amount
+from a
+group by country,to_char(TRANS_DATE,'YYYY-MM')
+order by 1
+;
